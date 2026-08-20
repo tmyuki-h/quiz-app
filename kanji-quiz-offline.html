@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>かんじの よみ クイズ 🌸</title>
+<style>
+  :root{
+    --bg1:#c1414f; --bg2:#822634; --accent:#f2cf6b; --accent-dark:#c9a53f;
+    --ok:#3fae6b; --ng:#7c2c3a;
+    --card:rgba(255,249,240,.15); --cardline:rgba(255,240,235,.42);
+    --ink-white:#fff8f4; --ink-soft:rgba(255,244,240,.85);
+    --sumi:#2a2222; --washi:#fbf5ea;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    font-family:"Hiragino Maru Gothic ProN","Hiragino Kaku Gothic ProN","Yu Gothic UI",-apple-system,"Segoe UI",sans-serif;
+    color:var(--ink-white);
+    background:linear-gradient(160deg,var(--bg1),var(--bg2));
+    background-attachment:fixed;min-height:100%;
+    display:flex;align-items:center;justify-content:center;padding:20px;overflow-x:hidden;
+  }
+  /* 桜の花びら */
+  .petal{position:fixed;top:-40px;font-size:22px;opacity:.5;pointer-events:none;z-index:0;animation:fall linear infinite}
+  @keyframes fall{
+    0%{transform:translateY(-40px) rotate(0deg);opacity:0}
+    10%{opacity:.55}
+    100%{transform:translateY(105vh) rotate(360deg);opacity:.15}
+  }
+  .wrap{width:100%;max-width:560px;position:relative;z-index:1}
+  .panel{
+    background:var(--card);border:1.5px solid var(--cardline);border-radius:26px;
+    padding:28px 24px 30px;backdrop-filter:blur(13px);-webkit-backdrop-filter:blur(13px);
+    box-shadow:0 20px 50px rgba(0,0,0,.3);animation:pop .45s cubic-bezier(.2,1.2,.4,1) both;
+  }
+  @keyframes pop{from{opacity:0;transform:translateY(18px) scale(.96)}to{opacity:1;transform:none}}
+  .hide{display:none!important}
+
+  h1{font-size:32px;text-align:center;line-height:1.3;text-shadow:0 3px 0 rgba(0,0,0,.18);
+     font-family:"Yu Mincho","Hiragino Mincho ProN",serif;letter-spacing:2px}
+  h1 .sakura{display:inline-block;animation:sway 3s ease-in-out infinite}
+  @keyframes sway{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+  .subtitle{text-align:center;color:var(--ink-soft);margin-top:10px;font-size:15px}
+  .section-label{font-size:15px;color:var(--ink-soft);margin:24px 0 12px;font-weight:700;text-align:center}
+
+  .grade-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grade{
+    display:flex;align-items:center;gap:12px;border:none;cursor:pointer;text-align:left;width:100%;
+    background:var(--washi);color:var(--sumi);border-radius:16px;padding:16px;
+    font-size:18px;font-weight:800;transition:transform .12s,box-shadow .12s,background .2s;
+    box-shadow:0 6px 0 rgba(0,0,0,.18);
+  }
+  .grade:hover{transform:translateY(-2px)}
+  .grade:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+  .grade .emo{font-size:26px}
+  .grade small{display:block;font-weight:600;color:#a26b56;font-size:11px;margin-top:2px}
+  .grade.sel{background:var(--accent);color:#5a4500}
+  .grade.sel small{color:#7a6200}
+  .grade.wide{grid-column:1 / -1}
+
+  .big-btn{
+    display:block;width:100%;margin-top:26px;cursor:pointer;border:none;
+    background:var(--accent);color:#5a4500;font-weight:900;font-size:22px;border-radius:18px;
+    padding:18px;box-shadow:0 7px 0 var(--accent-dark);transition:transform .12s,box-shadow .12s,opacity .2s;
+  }
+  .big-btn:hover{transform:translateY(-2px)}
+  .big-btn:active{transform:translateY(3px);box-shadow:0 3px 0 var(--accent-dark)}
+  .big-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+
+  .hud{display:flex;justify-content:space-between;gap:10px;margin-bottom:18px}
+  .stat{background:rgba(0,0,0,.2);border-radius:14px;padding:8px 12px;text-align:center;flex:1}
+  .stat .n{font-size:22px;font-weight:900;line-height:1}
+  .stat .l{font-size:11px;color:var(--ink-soft);margin-top:3px}
+  .stat .n.flame{color:var(--accent)}
+  .progress{height:10px;background:rgba(0,0,0,.22);border-radius:10px;overflow:hidden;margin-bottom:22px}
+  .progress > i{display:block;height:100%;width:0;background:linear-gradient(90deg,#f2cf6b,#e88aa0);border-radius:10px;transition:width .4s}
+
+  .qlabel{text-align:center;color:var(--ink-soft);font-size:15px;margin-bottom:12px;font-weight:700}
+  .qbox{
+    background:var(--washi);color:var(--sumi);border-radius:18px;padding:30px 18px;text-align:center;
+    margin:0 auto 24px;box-shadow:0 12px 26px rgba(0,0,0,.22);animation:pop .4s both;
+    border:2px solid rgba(130,38,52,.15);
+  }
+  .qbox .word{font-size:60px;font-weight:700;letter-spacing:4px;
+    font-family:"Yu Mincho","Hiragino Mincho ProN","MS Mincho",serif;line-height:1.1}
+  @media(max-width:420px){.qbox .word{font-size:48px}h1{font-size:26px}}
+
+  .ans-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .ans{
+    cursor:pointer;border:3px solid transparent;background:var(--washi);color:var(--sumi);
+    border-radius:16px;padding:18px 10px;font-size:24px;font-weight:900;
+    box-shadow:0 6px 0 rgba(0,0,0,.18);transition:transform .12s,box-shadow .12s,background .2s;
+  }
+  .ans:hover{transform:translateY(-2px)}
+  .ans:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+  .ans.correct{background:var(--ok)!important;border-color:#fff;color:#fff;animation:cheer .5s}
+  .ans.wrong{background:var(--ng)!important;border-color:#fff;color:#fff;animation:shake .4s}
+  .ans:disabled{cursor:default}
+  @keyframes cheer{0%,100%{transform:scale(1)}40%{transform:scale(1.07)}}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+
+  .feedback{text-align:center;min-height:34px;margin-top:18px;font-size:19px;font-weight:900}
+  .feedback.ok{color:var(--accent)}
+  .feedback.ng{color:#ffdfe4}
+  .feedback .ex{display:block;font-size:14px;color:var(--ink-soft);font-weight:700;margin-top:4px}
+  .next-btn{margin-top:12px}
+
+  .toast{position:fixed;top:30%;left:50%;transform:translate(-50%,-50%);font-size:88px;z-index:5;pointer-events:none;opacity:0}
+  .toast.show{animation:toast .9s ease-out}
+  @keyframes toast{0%{opacity:0;transform:translate(-50%,-30%) scale(.4)}30%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}70%{opacity:1}100%{opacity:0;transform:translate(-50%,-60%) scale(1)}}
+
+  .result-emo{font-size:78px;text-align:center;animation:pop .5s both}
+  .result-score{text-align:center;font-size:52px;font-weight:900;margin:6px 0;text-shadow:0 3px 0 rgba(0,0,0,.18)}
+  .result-sub{text-align:center;color:var(--ink-soft);font-size:17px}
+  .result-line{display:flex;justify-content:space-around;margin:22px 0 4px}
+
+  .mute-btn{position:fixed;top:14px;right:16px;z-index:6;background:rgba(0,0,0,.25);border:none;color:#fff;
+    font-size:20px;width:44px;height:44px;border-radius:50%;cursor:pointer}
+</style>
+</head>
+<body>
+<button class="mute-btn" id="muteBtn" title="音のオン・オフ">🔊</button>
+<div class="toast" id="toast">🎉</div>
+
+<div class="wrap">
+  <!-- START -->
+  <section class="panel" id="startScreen">
+    <h1><span class="sakura">🌸</span> かんじの よみ クイズ <span class="sakura">🌸</span></h1>
+    <p class="subtitle">かんじを見て、ただしい よみを えらぼう</p>
+    <div class="section-label">どの学年の かんじ？</div>
+    <div class="grade-grid" id="gradeOpts">
+      <button class="grade" data-g="1"><span class="emo">🌱</span><span>1年生<small>いちばん やさしい</small></span></button>
+      <button class="grade" data-g="2"><span class="emo">🌿</span><span>2年生<small>ふつう</small></span></button>
+      <button class="grade" data-g="3"><span class="emo">🍁</span><span>3年生<small>すこし むずかしい</small></span></button>
+      <button class="grade wide" data-g="all"><span class="emo">🌸</span><span>ぜんぶ（1〜3年）<small>ぜんぶまぜて チャレンジ！</small></span></button>
+    </div>
+    <button class="big-btn" id="startBtn" disabled>スタート！</button>
+  </section>
+
+  <!-- QUIZ -->
+  <section class="panel hide" id="quizScreen">
+    <div class="hud">
+      <div class="stat"><div class="n" id="hudScore">0</div><div class="l">スコア</div></div>
+      <div class="stat"><div class="n flame" id="hudStreak">0</div><div class="l">🔥 れんぞく</div></div>
+      <div class="stat"><div class="n" id="hudQ">1/10</div><div class="l">もんだい</div></div>
+    </div>
+    <div class="progress"><i id="progBar"></i></div>
+    <div class="qlabel">この かんじの よみは？</div>
+    <div class="qbox"><div class="word" id="word"></div></div>
+    <div class="ans-grid" id="answerArea"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="big-btn next-btn hide" id="nextBtn">つぎのもんだい →</button>
+  </section>
+
+  <!-- RESULT -->
+  <section class="panel hide" id="resultScreen">
+    <div class="result-emo" id="resEmo">🏆</div>
+    <div class="result-score"><span id="resScore">0</span> てん</div>
+    <p class="result-sub" id="resMsg"></p>
+    <div class="result-line">
+      <div class="stat"><div class="n" id="resCorrect">0</div><div class="l">せいかい</div></div>
+      <div class="stat"><div class="n flame" id="resBest">0</div><div class="l">🔥 さいこう連続</div></div>
+      <div class="stat"><div class="n" id="resRate">0%</div><div class="l">せいかい率</div></div>
+    </div>
+    <button class="big-btn" id="againBtn">もういちど！</button>
+    <button class="big-btn" id="homeBtn" style="background:var(--washi);color:var(--sumi);box-shadow:0 7px 0 rgba(0,0,0,.2);margin-top:12px">学年をかえる</button>
+  </section>
+</div>
+
+<script>
+const RAW=[["一","いち",1],["二","に",1],["三","さん",1],["五","ご",1],["六","ろく",1],["八","はち",1],["十","じゅう",1],["百","ひゃく",1],["千","せん",1],["花","はな",1],["犬","いぬ",1],["虫","むし",1],["竹","たけ",1],["森","もり",1],["林","はやし",1],["石","いし",1],["空","そら",1],["雨","あめ",1],["川","かわ",1],["山","やま",1],["口","くち",1],["耳","みみ",1],["手","て",1],["足","あし",1],["大きい","おおきい",1],["小さい","ちいさい",1],["白い","しろい",1],["青い","あおい",1],["赤い","あかい",1],["早い","はやい",1],["正しい","ただしい",1],["立つ","たつ",1],["休む","やすむ",1],["見る","みる",1],["出る","でる",1],["入る","はいる",1],["学校","がっこう",1],["先生","せんせい",1],["学生","がくせい",1],["名前","なまえ",1],["文字","もじ",1],["力","ちから",1],["男","おとこ",1],["女","おんな",1],["王子","おうじ",1],["円","えん",1],["車","くるま",1],["糸","いと",1],["貝","かい",1],["水","みず",1],["天気","てんき",1],["本","ほん",1],["名字","みょうじ",1],["学年","がくねん",1],["町","まち",1],["村","むら",1],["花火","はなび",1],["右","みぎ",1],["左","ひだり",1],["夕日","ゆうひ",1],["火山","かざん",1],["大人","おとな",1],["子犬","こいぬ",1],["竹林","ちくりん",1],["男子","だんし",1],["女子","じょし",1],["電車","でんしゃ",2],["時間","じかん",2],["教室","きょうしつ",2],["曜日","ようび",2],["朝","あさ",2],["昼","ひる",2],["夜","よる",2],["春","はる",2],["夏","なつ",2],["秋","あき",2],["冬","ふゆ",2],["東","ひがし",2],["西","にし",2],["南","みなみ",2],["北","きた",2],["店","みせ",2],["買う","かう",2],["売る","うる",2],["読む","よむ",2],["書く","かく",2],["聞く","きく",2],["話す","はなす",2],["走る","はしる",2],["歩く","あるく",2],["止まる","とまる",2],["弱い","よわい",2],["強い","つよい",2],["新しい","あたらしい",2],["古い","ふるい",2],["長い","ながい",2],["高い","たかい",2],["近い","ちかい",2],["遠い","とおい",2],["明るい","あかるい",2],["太い","ふとい",2],["細い","ほそい",2],["色","いろ",2],["黄色","きいろ",2],["黒い","くろい",2],["体","からだ",2],["頭","あたま",2],["顔","かお",2],["毛糸","けいと",2],["親子","おやこ",2],["兄弟","きょうだい",2],["姉妹","しまい",2],["妹","いもうと",2],["弟","おとうと",2],["父","ちち",2],["母","はは",2],["線","せん",2],["道","みち",2],["通る","とおる",2],["算数","さんすう",2],["計算","けいさん",2],["答え","こたえ",2],["理科","りか",2],["科学","かがく",2],["食べる","たべる",2],["肉","にく",2],["魚","さかな",2],["鳥","とり",2],["馬","うま",2],["牛","うし",2],["雪","ゆき",2],["雲","くも",2],["星","ほし",2],["風","かぜ",2],["公園","こうえん",2],["元気","げんき",2],["感想","かんそう",3],["勉強","べんきょう",3],["宿題","しゅくだい",3],["練習","れんしゅう",3],["研究","けんきゅう",3],["病院","びょういん",3],["医者","いしゃ",3],["薬","くすり",3],["世界","せかい",3],["島","しま",3],["港","みなと",3],["湖","みずうみ",3],["岸","きし",3],["波","なみ",3],["洋服","ようふく",3],["温度","おんど",3],["寒い","さむい",3],["暑い","あつい",3],["悪い","わるい",3],["美しい","うつくしい",3],["悲しい","かなしい",3],["安い","やすい",3],["重い","おもい",3],["軽い","かるい",3],["速い","はやい",3],["短い","みじかい",3],["深い","ふかい",3],["銀行","ぎんこう",3],["鉄道","てつどう",3],["炭","すみ",3],["油","あぶら",3],["野球","やきゅう",3],["打つ","うつ",3],["投げる","なげる",3],["遊ぶ","あそぶ",3],["泳ぐ","およぐ",3],["写真","しゃしん",3],["手帳","てちょう",3],["筆","ふで",3],["事実","じじつ",3],["運動","うんどう",3],["動物","どうぶつ",3],["植物","しょくぶつ",3],["農業","のうぎょう",3],["商品","しょうひん",3],["全部","ぜんぶ",3],["部屋","へや",3],["屋根","やね",3],["駅","えき",3],["転ぶ","ころぶ",3],["予定","よてい",3],["相談","そうだん",3],["送る","おくる",3],["進む","すすむ",3],["追う","おう",3],["待つ","まつ",3],["助ける","たすける",3],["育てる","そだてる",3],["消す","けす",3],["決める","きめる",3],["返す","かえす",3],["配る","くばる",3],["集める","あつめる",3],["登る","のぼる",3],["落ちる","おちる",3],["流れる","ながれる",3],["旅行","りょこう",3],["緑","みどり",3],["味","あじ",3],["命","いのち",3]];
+const ALL=RAW.map(r=>({word:r[0],reading:r[1],grade:r[2]}));
+
+const TOTAL=10, CHOICES=4;
+const $=id=>document.getElementById(id);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
+const sample=(a,n)=>shuffle(a).slice(0,n);
+
+// ---- sound ----
+let audioCtx=null, muted=false;
+function beep(freqs,dur){
+  if(muted)return;
+  try{
+    audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+    let t=audioCtx.currentTime;
+    freqs.forEach((f,i)=>{
+      const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+      o.type='triangle';o.frequency.value=f;o.connect(g);g.connect(audioCtx.destination);
+      const st=t+i*dur;
+      g.gain.setValueAtTime(0.0001,st);
+      g.gain.exponentialRampToValueAtTime(0.25,st+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,st+dur);
+      o.start(st);o.stop(st+dur);
+    });
+  }catch(e){}
+}
+const sndCorrect=()=>beep([523,659,784],0.12);
+const sndWrong=()=>beep([311,233],0.16);
+const sndClick=()=>beep([440],0.05);
+const sndFinish=()=>beep([523,659,784,1047],0.15);
+
+// ---- sakura petals ----
+(function(){
+  const marks=['🌸','🌸','🌸','🌼','❀'];
+  for(let i=0;i<10;i++){
+    const p=document.createElement('div');
+    p.className='petal';p.textContent=marks[i%marks.length];
+    p.style.left=(Math.random()*100)+'vw';
+    p.style.fontSize=(16+Math.random()*16)+'px';
+    p.style.animationDuration=(7+Math.random()*7)+'s';
+    p.style.animationDelay=(-Math.random()*10)+'s';
+    document.body.appendChild(p);
+  }
+})();
+
+// ---- state ----
+let gradeSel, quiz, idx, score, streak, bestStreak, correctCount, locked;
+
+$('gradeOpts').addEventListener('click',e=>{
+  const b=e.target.closest('.grade'); if(!b)return;
+  [...$('gradeOpts').children].forEach(c=>c.classList.remove('sel'));
+  b.classList.add('sel'); gradeSel=b.dataset.g; sndClick(); $('startBtn').disabled=false;
+});
+$('muteBtn').onclick=()=>{muted=!muted;$('muteBtn').textContent=muted?'🔇':'🔊';};
+$('startBtn').onclick=startGame;
+$('nextBtn').onclick=()=>{idx++; idx>=TOTAL?endGame():renderQuestion();};
+$('againBtn').onclick=startGame;
+$('homeBtn').onclick=()=>show('startScreen');
+
+function show(id){['startScreen','quizScreen','resultScreen'].forEach(s=>$(s).classList.toggle('hide',s!==id));window.scrollTo(0,0);}
+
+function makeChoices(ansItem, pool){
+  const readings=new Set([ansItem.reading]);
+  for(const it of shuffle(pool)){
+    if(readings.size>=CHOICES) break;
+    readings.add(it.reading); // Set ignores duplicate reading strings
+  }
+  // safety pad from ALL if pool too small
+  for(const it of shuffle(ALL)){
+    if(readings.size>=CHOICES) break;
+    readings.add(it.reading);
+  }
+  return shuffle([...readings]);
+}
+
+function startGame(){
+  const pool = gradeSel==='all' ? ALL : ALL.filter(c=>c.grade===+gradeSel);
+  const words = sample(pool, TOTAL);
+  quiz = words.map(w=>({item:w, choices:makeChoices(w,pool)}));
+  idx=0;score=0;streak=0;bestStreak=0;correctCount=0;
+  show('quizScreen');renderQuestion();
+}
+
+function renderQuestion(){
+  locked=false;
+  const q=quiz[idx];
+  $('hudScore').textContent=score;
+  $('hudStreak').textContent=streak;
+  $('hudQ').textContent=(idx+1)+'/'+TOTAL;
+  $('progBar').style.width=(idx/TOTAL*100)+'%';
+  $('feedback').innerHTML='';$('feedback').className='feedback';
+  $('nextBtn').classList.add('hide');
+  $('word').textContent=q.item.word;
+  const area=$('answerArea'); area.innerHTML='';
+  q.choices.forEach(r=>{
+    const b=document.createElement('button');
+    b.className='ans';b.textContent=r;b.dataset.r=r;
+    b.onclick=()=>answer(b,r,q);
+    area.appendChild(b);
+  });
+}
+
+function answer(btn,val,q){
+  if(locked)return; locked=true;
+  const all=[...$('answerArea').children];
+  all.forEach(b=>b.disabled=true);
+  const correct = val===q.item.reading;
+  if(correct){
+    btn.classList.add('correct');
+    score+=10; streak++; correctCount++;
+    if(streak>bestStreak)bestStreak=streak;
+    if(streak>=3)score+=streak;
+    let msg='せいかい！ 🎉';
+    if(streak>=5)msg=`かんじ名人！ ${streak}れんぞく！🔥`;
+    else if(streak>=3)msg=`いいね！ ${streak}れんぞく！✨`;
+    $('feedback').innerHTML=msg;$('feedback').className='feedback ok';
+    popToast(streak>=3?'🌸':'🎉');
+    sndCorrect();
+  }else{
+    btn.classList.add('wrong');
+    all.find(b=>b.dataset.r===q.item.reading)?.classList.add('correct');
+    streak=0;
+    $('feedback').innerHTML='おしい！ <span class="ex">「'+q.item.word+'」は「'+q.item.reading+'」だよ</span>';
+    $('feedback').className='feedback ng';
+    popToast('😢');
+    sndWrong();
+  }
+  $('hudScore').textContent=score;
+  $('hudStreak').textContent=streak;
+  $('progBar').style.width=((idx+1)/TOTAL*100)+'%';
+  $('nextBtn').classList.remove('hide');
+  $('nextBtn').textContent = idx>=TOTAL-1 ? 'けっかを見る 🏁' : 'つぎのもんだい →';
+}
+
+function popToast(e){const t=$('toast');t.textContent=e;t.classList.remove('show');void t.offsetWidth;t.classList.add('show');}
+
+function endGame(){
+  sndFinish();
+  const rate=Math.round(correctCount/TOTAL*100);
+  $('resScore').textContent=score;
+  $('resCorrect').textContent=correctCount+'/'+TOTAL;
+  $('resBest').textContent=bestStreak;
+  $('resRate').textContent=rate+'%';
+  let emo,msg;
+  if(rate===100){emo='🏆';msg='ぜんもん せいかい！ かんじ博士だね！';}
+  else if(rate>=80){emo='🌸';msg='すばらしい！ とてもよくできました！';}
+  else if(rate>=50){emo='😄';msg='いいちょうし！ もういちどチャレンジ！';}
+  else{emo='🌱';msg='だいじょうぶ！ くりかえせば おぼえられるよ！';}
+  $('resEmo').textContent=emo;$('resMsg').textContent=msg;
+  show('resultScreen');
+}
+</script>
+</body>
+</html>
