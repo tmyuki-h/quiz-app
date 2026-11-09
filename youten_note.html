@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>二衛 要点ノート</title>
+<style>
+/* Layout: スマホで縦に流し読みする単語帳型ノート。上部に検索・科目・赤シートの操作帯、下にテーマ別カード */
+:root{
+  --bg:#f4f6f5; --card:#ffffff; --ink:#1c2a28; --muted:#5e6f6b; --line:#d7e0dd;
+  --accent:#0f6b5c; --accent-ink:#ffffff; --accent-soft:#e2f1ec;
+  --sheet:#c8352e; --x-bg:#fbe9e7; --x-ink:#9a2a24; --m-bg:#fff6d6; --m-ink:#6b5300;
+  --law:#2f5d9e; --hyg:#0f6b5c; --phy:#a2512b;
+  --font:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","BIZ UDPGothic","Yu Gothic UI","Meiryo","Noto Sans CJK JP",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#111917; --card:#1a2422; --ink:#e4ece9; --muted:#9db0ab; --line:#2d3d3a;
+  --accent:#4fbfa6; --accent-ink:#0c1715; --accent-soft:#1d3531;
+  --sheet:#e0574f; --x-bg:#3a2120; --x-ink:#ffaaa3; --m-bg:#3a3315; --m-ink:#f2da86;
+  --law:#86aae2; --hyg:#4fbfa6; --phy:#e39d75; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111917; --card:#1a2422; --ink:#e4ece9; --muted:#9db0ab; --line:#2d3d3a;
+  --accent:#4fbfa6; --accent-ink:#0c1715; --accent-soft:#1d3531;
+  --sheet:#e0574f; --x-bg:#3a2120; --x-ink:#ffaaa3; --m-bg:#3a3315; --m-ink:#f2da86;
+  --law:#86aae2; --hyg:#4fbfa6; --phy:#e39d75; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15.5px;line-height:1.75;-webkit-text-size-adjust:100%;
+  padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+button,input{font:inherit;color:inherit}
+button:focus-visible,input:focus-visible,.k:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+[hidden]{display:none!important}
+.wrap{max-width:720px;margin:0 auto;padding-inline:16px;padding-block:16px 48px;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3,p{margin:0}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+h1{font-size:22px;line-height:1.3}
+.sub{font-size:13px;color:var(--muted)}
+.meter{text-align:right;flex-shrink:0;font-size:12px;color:var(--muted)}
+.meter b{display:block;font-size:22px;color:var(--accent);font-variant-numeric:tabular-nums;line-height:1.2}
+.track{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:4px;width:120px}
+.fill{height:100%;background:var(--accent);border-radius:3px}
+
+.controls{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:8px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid var(--line);margin-inline:-16px;padding-inline:16px}
+.row{display:flex;gap:8px;align-items:center}
+.search{flex:1;min-width:0;min-height:42px;border-radius:10px;border:1px solid var(--line);background:var(--card);padding:6px 12px}
+.sheet-btn{min-height:42px;padding:6px 12px;border-radius:10px;border:1.5px solid var(--sheet);background:var(--card);color:var(--sheet);font-weight:700;cursor:pointer;white-space:nowrap;font-size:14px}
+.sheet-btn[aria-pressed="true"]{background:var(--sheet);color:#fff}
+.tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex-shrink:0;min-height:36px;padding:4px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:13.5px;white-space:nowrap}
+.tabs button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.count{font-size:13px;color:var(--muted)}
+
+.toc{display:flex;flex-wrap:wrap;gap:6px}
+.toc a{font-size:13px;color:var(--ink);text-decoration:none;border:1px solid var(--line);background:var(--card);border-radius:8px;padding:2px 8px}
+.toc a.done{color:var(--muted);text-decoration:line-through}
+details.tocbox summary{cursor:pointer;font-size:14px;font-weight:700;color:var(--accent);padding-block:4px}
+
+.subj-h{font-size:16px;font-weight:700;color:var(--c);border-left:4px solid var(--c);padding-left:10px;margin-top:8px}
+.subj-h.L{--c:var(--law)} .subj-h.H{--c:var(--hyg)} .subj-h.P{--c:var(--phy)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0;scroll-margin-top:140px}
+.card.is-done{opacity:.72}
+.card-h{display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap}
+.card-h h3{font-size:17px;line-height:1.45;flex:1 1 auto;min-width:0}
+.badge{font-size:11.5px;font-weight:700;border-radius:6px;padding:1px 7px;white-space:nowrap;border:1px solid var(--accent);color:var(--accent);align-self:center}
+.card ul,.card ol{margin:0;padding-left:1.25em;display:flex;flex-direction:column;gap:4px}
+.card table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+.card th,.card td{padding:6px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.card tr:last-child th,.card tr:last-child td{border-bottom:none}
+.card th{font-weight:700;background:var(--accent-soft);white-space:nowrap}
+.card td+td,.card th+td{border-left:1px solid var(--line)}
+.k{font-weight:700;border-radius:3px;padding:0 1px;background:linear-gradient(transparent 60%,var(--m-bg) 60%)}
+body.sheet .k{background:var(--sheet);color:transparent;cursor:pointer;user-select:none}
+body.sheet .k.open{background:var(--accent-soft);color:var(--ink)}
+.x{background:var(--x-bg);color:var(--x-ink);border-radius:10px;padding:8px 12px;font-size:14px}
+.x::before{content:"よくある誤り　";font-weight:700}
+.m{background:var(--m-bg);color:var(--m-ink);border-radius:10px;padding:8px 12px;font-size:14px}
+.m::before{content:"覚え方　";font-weight:700}
+.formula{background:var(--accent-soft);border-radius:10px;padding:8px 12px;font-size:14px}
+.done-btn{align-self:flex-end;min-height:38px;padding:4px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:13.5px;color:var(--muted)}
+.done-btn[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);font-weight:700}
+.empty{color:var(--muted);text-align:center;padding:24px 0}
+mark{background:var(--m-bg);color:inherit;border-radius:2px}
+footer{font-size:12px;color:var(--muted);line-height:1.6;border-top:1px solid var(--line);padding-top:12px}
+.top-btn{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:18px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <p class="sub">第二種衛生管理者 ／ これだけノートより</p>
+      <h1>要点ノート</h1>
+    </div>
+    <div class="meter"><span>覚えたテーマ</span><b id="meterNum">0/0</b><div class="track"><div class="fill" id="meterFill" style="width:0%"></div></div></div>
+  </header>
+
+  <div class="controls">
+    <div class="row">
+      <input class="search" id="q" type="search" placeholder="キーワードで探す（例：産業医、14日）" aria-label="キーワードで探す">
+      <button class="sheet-btn" id="sheetBtn" type="button" aria-pressed="false">赤シート</button>
+    </div>
+    <div class="tabs" id="tabs" role="group" aria-label="表示する範囲">
+      <button type="button" data-f="all" aria-pressed="true">すべて</button>
+      <button type="button" data-f="L" aria-pressed="false">関係法令</button>
+      <button type="button" data-f="H" aria-pressed="false">労働衛生</button>
+      <button type="button" data-f="P" aria-pressed="false">労働生理</button>
+      <button type="button" data-f="pub" aria-pressed="false">公表問題に出た</button>
+      <button type="button" data-f="todo" aria-pressed="false">まだ覚えていない</button>
+    </div>
+    <p class="count" id="count" aria-live="polite"></p>
+  </div>
+
+  <details class="tocbox"><summary>目次</summary><div class="toc" id="toc"></div></details>
+  <main id="list"></main>
+
+  <footer>
+    太字の下線部が覚えるポイントです。「赤シート」を押すと隠れ、タップすると1つずつ表示されます。「公表問題」の印は、令和7年後期・令和8年前期の公表問題で出題されたテーマです。<br>
+    共有された「これだけノート」（スキャン）を読み取り、スマホで学習しやすいよう再構成しました。読み取りにくかった数値は、法令と公表問題で確認して補っています。個人の学習用です。
+  </footer>
+</div>
+<button class="top-btn" id="topBtn" type="button" aria-label="ページの先頭へ">↑</button>
+
+<script>
+/* 書式: [科目, id, タイトル, 公表問題で出題(1/0), 本文HTML]
+   <b class="k">…</b> = 赤シートで隠れる要点 / <p class="x">…</p> = よくある誤り / <p class="m">…</p> = 覚え方 */
+const CARDS=[
+/* ================= 関係法令 ================= */
+["L","l-mokuteki","労働安全衛生法の目的",0,`
+<p>労働基準法と相まって、<b class="k">危害防止基準</b>の確立、<b class="k">責任体制</b>の明確化、<b class="k">自主的活動</b>の促進の措置を講ずるなど、総合的・計画的な対策を推進することで、労働者の<b class="k">安全と健康</b>を確保し、<b class="k">快適な職場環境</b>の形成を促進する。</p>
+<p class="m">キ・セ・ジ・ア・カ（危害防止基準・責任体制・自主的活動・安全と健康・快適な職場環境）</p>
+<table><tr><th>労働災害</th><td>業務に起因して労働者が負傷・疾病・死亡すること。<b class="k">物的な損害だけは含まない</b></td></tr>
+<tr><th>労働者</th><td>事業に使用され賃金を支払われる者。同居の親族のみの事業・家事使用人は除く</td></tr>
+<tr><th>事業者</th><td>事業を行う者で、労働者を使用する者（安衛法）</td></tr>
+<tr><th>使用者</th><td>事業主や経営担当者など、事業主のために行為をする全ての者（労基法）</td></tr></table>`],
+
+["L","l-sokatsu","総括安全衛生管理者",1,`
+<table><tr><th>業種</th><th>選任が必要な規模</th></tr>
+<tr><td>林業・鉱業・建設業・運送業・清掃業</td><td><b class="k">常時100人以上</b></td></tr>
+<tr><td>製造業・電気・ガス・熱供給・水道・通信業・各種商品卸売/小売業・家具等卸売/小売業・燃料小売業・旅館業・ゴルフ場業・自動車整備業・機械修理業</td><td><b class="k">常時300人以上</b></td></tr>
+<tr><td>その他の業種（金融・警備・飲食・医療など）</td><td><b class="k">常時1,000人以上</b></td></tr></table>
+<ul>
+<li>その事業の実施を<b class="k">統括管理する者</b>を充てる。<b class="k">これに準ずる者は不可</b>。安全衛生の経験や免許は不要</li>
+<li>選任すべき事由の発生から<b class="k">14日以内</b>に選任し、<b class="k">遅滞なく</b>所轄労働基準監督署長に報告</li>
+<li>旅行・疾病などで職務を行えないときは<b class="k">代理者を選任</b>する（代理者の規定があるのは総括だけ）</li>
+</ul>
+<p class="x">事務所だけの本社・本店は、業種にかかわらず「その他の業種」として扱う。</p>`],
+
+["L","l-eiseikanrisha","衛生管理者・産業医の人数",1,`
+<table><tr><th>常時使用する労働者数</th><th>衛生管理者</th><th>産業医</th></tr>
+<tr><td>50〜200人</td><td>1人以上</td><td rowspan="5">1人以上</td></tr>
+<tr><td>201〜500人</td><td>2人以上</td></tr>
+<tr><td>501〜1,000人</td><td>3人以上</td></tr>
+<tr><td>1,001〜2,000人</td><td><b class="k">4人以上</b></td></tr>
+<tr><td>2,001〜3,000人</td><td><b class="k">5人以上</b></td></tr>
+<tr><td>3,001人以上</td><td>6人以上</td><td><b class="k">2人以上</b></td></tr></table>
+<ul>
+<li>専任の衛生管理者：<b class="k">1,000人超</b>、または500人超で有害業務（坑内・多量の高熱物体など）に30人以上</li>
+<li>専属の産業医：<b class="k">1,000人以上</b>、または深夜業などの有害業務に<b class="k">500人以上</b></li>
+<li>複数の衛生管理者を選任するとき、専属でない労働衛生コンサルタントは<b class="k">1人まで</b>選任できる</li>
+<li>医師・歯科医師・労働衛生コンサルタントも衛生管理者に選任できる</li>
+</ul>
+<p class="x">深夜業は「専任の衛生管理者」の要件には入らない（公表問題で2回とも出た誤り）。</p>
+<table><tr><th>専属</th><td>その事業場に所属している（雇用・常駐）</td></tr><tr><th>専任</th><td>衛生管理者の仕事だけを行う</td></tr></table>
+<p>事業場は法人単位ではなく<b class="k">場所単位</b>。人数はパート・アルバイトも含めた常時使用する労働者数。</p>`],
+
+["L","l-menkyo","第一種と第二種の業種",1,`
+<table><tr><th>第一種が必要</th><td>農林畜水産業・鉱業・建設業・製造業（物の加工業を含む）・電気業・ガス業・水道業・熱供給業・<b class="k">運送業</b>・自動車整備業・機械修理業・<b class="k">医療業</b>・<b class="k">清掃業</b></td></tr>
+<tr><th>第二種でもよい</th><td>上記以外（金融・飲食・教育・小売・旅館・通信・ゴルフ場業など）</td></tr></table>
+<p>衛生工学衛生管理者が必要なのは、一部の有害業務に30人以上が従事する場合。</p>`],
+
+["L","l-shokumu","衛生管理者・産業医の職務",1,`
+<p>総括安全衛生管理者が統括管理し、衛生管理者はそのうち<b class="k">衛生に係る技術的事項</b>を管理する。</p>
+<ul><li>危険・健康障害を防止する措置</li><li>安全・衛生のための教育</li><li>健康診断その他健康の保持増進の措置</li><li>労働災害の原因調査と再発防止対策</li><li>安全衛生方針の表明、リスクアセスメント、安全衛生計画の作成・実施・評価・改善</li></ul>
+<p>産業医の職務は、健康診断、長時間労働者・ストレスチェックの面接指導、作業環境の維持管理、作業の管理、健康教育・健康相談、衛生教育、健康障害の原因調査など。</p>
+<p class="m">迷ったら「健康・災害・安全・衛生・危険」が入っていれば職務と判断する。</p>
+<table><tr><th>職務ではないもの（よく出る誤り）</th></tr>
+<tr><td>総括：安全衛生推進者や<b class="k">産業医の指揮</b></td></tr>
+<tr><td>衛生管理者：衛生推進者の指揮、業務上疾病の<b class="k">災害補償</b>、事業者への<b class="k">勧告</b>（勧告は産業医の職務）</td></tr>
+<tr><td>産業医：安全衛生<b class="k">方針の表明</b>、安全衛生<b class="k">計画の作成</b>、衛生推進者の選任</td></tr>
+<tr><td>衛生委員会：産業医や衛生推進者の<b class="k">選任</b></td></tr></table>`],
+
+["L","l-junshi","作業場の巡視",1,`
+<table><tr><th>衛生管理者</th><td>少なくとも<b class="k">毎週1回</b></td></tr>
+<tr><th>産業医</th><td>原則<b class="k">毎月1回</b>。事業者の同意があり、所定の情報が毎月提供されていれば<b class="k">2か月に1回</b>でもよい</td></tr></table>
+<p>所定の情報は、衛生管理者の毎週の巡視結果と、衛生委員会の調査審議を経て事業者が産業医に提供すると決めたもの。</p>
+<p class="x">衛生委員会の議事概要だけを提供しても、2か月に1回にはできない。</p>
+<p>事業者は産業医から受けた勧告の内容を<b class="k">衛生委員会</b>に報告する。勧告の記録は3年保存。</p>`],
+
+["L","l-iinkai","衛生委員会",1,`
+<ul>
+<li><b class="k">全業種</b>で常時<b class="k">50人以上</b>の事業場に設置</li>
+<li>議長：<b class="k">総括安全衛生管理者</b>、または事業の実施を統括管理する者（<b class="k">準ずる者も可</b>）</li>
+<li>議長を除く委員の半数は、過半数組合（なければ過半数代表者）の<b class="k">推薦に基づき事業者が指名</b></li>
+<li>委員：衛生管理者、産業医（<b class="k">専属でなくてもよい</b>）、衛生に関し経験を有する労働者。作業環境測定士も指名できる</li>
+<li>開催は<b class="k">毎月1回以上</b>。開催の都度、遅滞なく議事の概要を労働者に周知</li>
+<li><b class="k">重要な議事</b>の記録を<b class="k">3年間</b>保存</li>
+</ul>
+<p class="x">議長は衛生管理者ではない。全ての議事を2年保存、も誤り。</p>
+<p>付議事項：健康障害の防止・健康の保持増進の基本対策、労働災害の原因と再発防止（衛生に係るもの）、衛生規程の作成、リスクアセスメント（衛生）、衛生教育の実施計画、長時間労働による健康障害防止対策、精神的健康の保持増進対策、監督署長などから文書で指導を受けた事項。</p>`],
+
+["L","l-kyoiku","安全衛生教育",0,`
+<p><b class="k">雇入れ時</b>と<b class="k">作業内容の変更時</b>に、業種・雇用期間・規模に関わらず実施する。</p>
+<p>内容：機械・原材料の危険性と取扱い、安全装置や保護具、作業手順、作業開始時の点検、発生しうる疾病の原因と予防、整理整頓・清潔、事故時の応急措置と退避など。</p>
+<ul><li>記録の保存義務は<b class="k">ない</b>（特別教育を除く）</li><li>衛生管理者が行わなければならない定めは<b class="k">ない</b></li><li>十分な知識・技能を持つ者には<b class="k">省略できる</b></li></ul>`],
+
+["L","l-kenshin","一般健康診断",1,`
+<table><tr><th>種類</th><th>時期</th><th>記録</th></tr>
+<tr><td>雇入時</td><td>雇入れの際</td><td rowspan="4">5年</td></tr>
+<tr><td>定期</td><td><b class="k">1年以内ごとに1回</b></td></tr>
+<tr><td>特定業務従事者（深夜業など）</td><td>配置替えの際と<b class="k">6か月以内ごとに1回</b>（胸部X線は1年以内ごと）</td></tr>
+<tr><td>海外派遣（6か月以上）</td><td>派遣する際・帰国した際</td></tr>
+<tr><td>給食従業員の検便</td><td>雇入れ・配置替えの際</td><td>—</td></tr></table>
+<ul>
+<li>結果は異常の有無にかかわらず<b class="k">全員に遅滞なく通知</b></li>
+<li>異常所見者の医師の意見聴取は、健診日から<b class="k">3か月以内</b>（深夜業従事者の自発的健診は証明書提出から2か月以内）</li>
+<li>常時<b class="k">50人以上</b>なら定期健診の結果を<b class="k">遅滞なく</b>監督署長に報告</li>
+<li>雇入時健診は、<b class="k">3か月以内</b>に受けた健診結果を提出すればその項目を省略できる（医師の判断による省略はない）</li>
+</ul>
+<table><tr><th>省略できない</th><td><b class="k">既往歴・業務歴の調査</b>、自覚症状・他覚症状、体重・視力・聴力、血圧、尿検査</td></tr>
+<tr><th>医師の判断で省略できる</th><td>身長・腹囲・胸部X線・喀痰・貧血・肝機能・血中脂質・血糖・心電図（年齢などの条件あり）</td></tr></table>
+<p>聴力検査は35歳・40歳・<b class="k">45歳以上</b>で<b class="k">1,000Hzと4,000Hz</b>。それ以外の年齢は医師が適当と認める方法でよい。</p>`],
+
+["L","l-shika","歯科医師による健康診断",0,`
+<p>塩酸・硝酸・硫酸・亜硫酸・<b class="k">フッ化水素</b>・<b class="k">黄りん</b>などを扱う業務の従事者に、雇入れ・配置換えの際と<b class="k">6か月以内ごとに1回</b>。記録は5年。</p>
+<p>定期に実施したものは、結果を所轄労働基準監督署長に報告する。</p>
+<p class="m">歯医者さん フッと笑った 歯が黄色い（酸のつくもの・フッ化水素・黄りん）</p>`],
+
+["L","l-mensetsu","長時間労働者の面接指導",1,`
+<ul>
+<li>対象：週40時間を超えた時間が<b class="k">月80時間超</b>で、<b class="k">疲労の蓄積</b>が認められ、<b class="k">本人の申出</b>があった者。遅滞なく実施</li>
+<li>事業者が指定した医師が行う。労働者が希望しなければ<b class="k">他の医師</b>でもよい（産業医に限らない）</li>
+<li>面接指導の後、<b class="k">遅滞なく</b>医師の意見を聴く</li>
+<li>記録は<b class="k">5年間</b>保存</li>
+<li>月80時間超の労働者の氏名と超えた時間は<b class="k">産業医に提供</b>する</li>
+<li>労働時間の状況はタイムカードなど客観的な方法で、<b class="k">管理監督者や裁量労働の対象者も含めて</b>把握する</li>
+</ul>
+<p>記録の記載事項：実施年月日、労働者の氏名、医師の氏名、疲労の蓄積の状況、心身の状況、医師の意見。</p>
+<p class="x">上司の勧奨で実施、産業医に限る、家族の状況や時間外労働の時間数を記録、はいずれも誤り。</p>`],
+
+["L","l-stress","ストレスチェック",0,`
+<ul>
+<li>実施者：<b class="k">医師、保健師</b>、所定の研修を修了した<b class="k">看護師・精神保健福祉士・歯科医師・公認心理師</b></li>
+<li>解雇・昇進・異動に直接の権限を持つ者は、実施の事務に<b class="k">従事できない</b></li>
+<li><b class="k">1年以内ごとに1回</b>、定期に実施</li>
+<li>結果は医師等から本人に直接通知。<b class="k">本人の同意なく</b>事業者に提供してはならない</li>
+<li>項目：心理的な負担の<b class="k">原因</b>、心身の<b class="k">自覚症状</b>、周囲の<b class="k">支援</b></li>
+<li>同意を得て結果を受け取った場合、事業者は記録を<b class="k">5年間</b>保存</li>
+<li>集団ごとの集計・分析は<b class="k">努力義務</b></li>
+</ul>
+<p>面接指導：高ストレスで、医師等が必要と認めた者が<b class="k">申し出たとき</b>に遅滞なく実施。記録は5年保存。担当は産業医などが推奨されるが、産業医に限らない。</p>
+<p>常時50人以上の事業場は、1年以内ごとに1回、検査結果等報告を監督署長に提出。</p>`],
+
+["L","l-houkoku","主な報告義務（所轄労働基準監督署長へ）",0,`
+<table><tr><th>報告</th><th>条件</th><th>時期</th></tr>
+<tr><td>選任報告</td><td>総括・衛生管理者・安全管理者・産業医を選任したとき</td><td>遅滞なく</td></tr>
+<tr><td>定期健康診断結果報告</td><td>常時<b class="k">50人以上</b></td><td>遅滞なく</td></tr>
+<tr><td>特殊健康診断結果報告</td><td><b class="k">規模に関わらず</b></td><td>遅滞なく</td></tr>
+<tr><td>ストレスチェック報告</td><td>常時50人以上</td><td>1年以内ごとに1回</td></tr>
+<tr><td>労働者死傷病報告</td><td>労働災害で死亡・休業したとき</td><td>休業4日以上は遅滞なく</td></tr></table>
+<p>安全衛生推進者・衛生推進者には選任報告がない。派遣労働者の死傷病報告は派遣元・派遣先の双方が提出する。</p>`],
+
+["L","l-ansokisoku","労働安全衛生規則（衛生基準）",1,`
+<table><tr><th>気積</th><td>床から<b class="k">4m</b>以下の空間で、1人<b class="k">10m³以上</b>（設備の容積は除く）</td></tr>
+<tr><th>換気</th><td>開放できる窓などが床面積の<b class="k">20分の1以上</b>。足りなければ換気設備を設ける</td></tr>
+<tr><th>照度</th><td>精密<b class="k">300</b>・普通<b class="k">150</b>・粗<b class="k">70</b>ルクス以上</td></tr>
+<tr><th>照明設備の点検</th><td><b class="k">6か月以内</b>ごとに1回</td></tr>
+<tr><th>休養室</th><td>常時<b class="k">50人以上</b>または<b class="k">女性30人以上</b>で、男女別の臥床できる休養室</td></tr>
+<tr><th>大掃除</th><td><b class="k">6か月以内</b>ごとに1回（ねずみ・昆虫の調査も同じ）</td></tr>
+<tr><th>食堂</th><td>1人<b class="k">1m²以上</b></td></tr>
+<tr><th>炊事場</th><td>専用の履物を備え、<b class="k">土足禁止</b>。炊事従業員には専用の便所と休憩室</td></tr></table>
+<p>事務所衛生基準規則の照度は令和4年改正で、一般的な事務作業300ルクス以上・付随的な事務作業150ルクス以上の2区分。試験は安衛則の3区分で出る。</p>`],
+
+["L","l-jimusho","事務所衛生基準規則",1,`
+<table><tr><th>空調で供給する空気</th><td>CO <b class="k">10ppm以下</b>、CO₂ <b class="k">1,000ppm（0.1%）以下</b>、浮遊粉じん0.15mg/m³以下、ホルムアルデヒド0.1mg/m³以下</td></tr>
+<tr><th>室の空気全体</th><td>CO 50ppm以下、CO₂ 5,000ppm以下</td></tr>
+<tr><th>気流</th><td><b class="k">0.5m/s以下</b></td></tr>
+<tr><th>室温</th><td>18〜28℃（努力義務）</td></tr>
+<tr><th>相対湿度</th><td>40〜70%（努力義務）</td></tr></table>
+<table><tr><th>冷却塔・加湿装置などの汚れの点検</th><td><b class="k">1か月以内</b>ごと</td></tr>
+<tr><th>機械換気設備の異常の点検</th><td><b class="k">2か月以内</b>ごと</td></tr>
+<tr><th>冷却塔・水管・加湿装置の清掃</th><td><b class="k">1年以内</b>ごと</td></tr>
+<tr><th>燃焼器具</th><td><b class="k">毎日</b>点検</td></tr>
+<tr><th>中央管理方式の空気環境測定</th><td><b class="k">2か月以内</b>ごとに1回、記録3年、報告不要</td></tr>
+<tr><th>大規模修繕・模様替後</th><td>使用開始後最初の6〜9月にホルムアルデヒドを1回測定</td></tr></table>
+<p class="m">汚れ1か月、異常2か月、清掃1年</p>
+<p>1ppm＝100万分の1。1,000ppm＝0.1%。事務所衛生基準規則に「喫煙」の定めはない。</p>`],
+
+["L","l-roudoujikan","労働時間・休憩・休日",1,`
+<ul>
+<li>法定労働時間：休憩を除き<b class="k">週40時間・1日8時間</b></li>
+<li>36協定を結び監督署長に届け出れば時間外・休日労働ができる（<b class="k">満18歳未満は除く</b>）</li>
+<li>上限：原則<b class="k">月45時間・年360時間</b>。特別条項でも<b class="k">年720時間</b>以内、<b class="k">複数月平均80時間</b>以内、<b class="k">月100時間未満</b>（後の2つは休日労働を含む）。月45時間超は<b class="k">年6か月</b>まで</li>
+<li>事業場が違っても労働時間は<b class="k">通算</b>する</li>
+<li>休憩：6時間超で<b class="k">45分</b>、8時間超で<b class="k">1時間</b>。労働時間の途中に与える</li>
+<li>休日：<b class="k">毎週1回</b>、または4週間で4日以上</li>
+</ul>
+<table><tr><th>割増賃金</th><th>率</th></tr><tr><td>時間外</td><td>2割5分以上（月60時間超は<b class="k">5割以上</b>）</td></tr><tr><td>法定休日</td><td><b class="k">3割5分以上</b></td></tr><tr><td>深夜（午後10時〜午前5時）</td><td>2割5分以上</td></tr></table>
+<table><tr><th>変形労働時間制</th><th>導入の方法</th><th>届出</th></tr>
+<tr><td>1か月単位</td><td>労使協定または就業規則</td><td>必要</td></tr>
+<tr><td>フレックスタイム制</td><td>就業規則＋労使協定</td><td>清算期間1か月以内は不要、1か月超は必要</td></tr>
+<tr><td>1年単位</td><td>労使協定</td><td>必要</td></tr>
+<tr><td>1週間単位の非定型的</td><td>労使協定</td><td>必要</td></tr></table>
+<p>適用除外（農水産業、<b class="k">管理監督者・機密事務</b>、許可を受けた監視・断続的労働）は労働時間・休憩・休日の規定が適用されないが、<b class="k">深夜割増と年休は適用</b>される。</p>`],
+
+["L","l-nenkyu","年次有給休暇",1,`
+<p>6か月継続勤務し、全労働日の<b class="k">8割以上</b>出勤すると10日。最大20日。</p>
+<table><tr><th>勤続</th><th>6か月</th><th>1年6か月</th><th>2年6か月</th><th>3年6か月</th><th>4年6か月</th><th>5年6か月</th><th>6年6か月〜</th></tr>
+<tr><td>通常</td><td>10</td><td>11</td><td>12</td><td>14</td><td>16</td><td>18</td><td>20</td></tr>
+<tr><td>週4日</td><td>7</td><td>8</td><td>9</td><td>10</td><td>12</td><td><b class="k">13</b></td><td>15</td></tr>
+<tr><td>週3日</td><td>5</td><td>6</td><td><b class="k">6</b></td><td>8</td><td>9</td><td>10</td><td>11</td></tr>
+<tr><td>週2日</td><td>3</td><td>4</td><td>4</td><td>5</td><td>6</td><td>6</td><td>7</td></tr>
+<tr><td>週1日</td><td>1</td><td>2</td><td>2</td><td>2</td><td>3</td><td>3</td><td>3</td></tr></table>
+<p>比例付与の対象は、週<b class="k">30時間未満</b>かつ週4日以下（年216日以下）。日数＝通常の日数×週所定日数÷5.2（端数切り捨て）。</p>
+<ul>
+<li>計画的付与：<b class="k">5日を超える部分</b>を労使協定で計画的に付与できる</li>
+<li>時間単位年休：労使協定で年<b class="k">5日</b>まで</li>
+<li>時効は<b class="k">2年</b>（翌年度まで繰越し）</li>
+<li>10日以上付与される者には、うち<b class="k">5日</b>を毎年時季指定して与える義務</li>
+<li>出勤したとみなす期間：業務上の傷病による休業、<b class="k">育児休業・介護休業</b>、産前産後休業</li>
+<li>賃金：平均賃金、通常の賃金、標準報酬月額の30分の1（労使協定が必要）のいずれか</li>
+</ul>`],
+
+["L","l-ninsanpu","妊産婦等",1,`
+<ul>
+<li>妊産婦＝妊娠中と<b class="k">産後1年</b>を経過しない女性</li>
+<li>請求があれば時間外・休日労働は禁止（<b class="k">管理監督者は除く</b>）</li>
+<li>請求があれば深夜業は禁止（<b class="k">管理監督者も含む</b>）</li>
+<li>変形労働時間制でも請求があれば法定時間を超えられない。<b class="k">フレックスタイム制は可</b></li>
+<li>1日の時間外労働の時間数の規制はない</li>
+<li>産前<b class="k">6週間</b>（多胎は14週間）は請求があれば休業。産後<b class="k">8週間</b>は就業禁止（6週間経過後、本人が請求し医師が認めた業務は可）</li>
+<li>育児時間：生後<b class="k">1年</b>未満の子に、1日<b class="k">2回</b>各<b class="k">30分</b>以上。有給でなくてよい</li>
+<li>生理日の就業が著しく困難な女性が請求したら就業させてはならない</li>
+</ul>`],
+
+["L","l-shugyokisoku","就業規則",0,`
+<p>常時<b class="k">10人以上</b>（パートを含む）の労働者を使用する使用者に作成・届出の義務。</p>
+<table><tr><th>絶対的必要記載事項</th><td>始業・終業時刻、休憩、休日、休暇、交替制／賃金の決定・計算・支払方法、締切・支払時期、昇給／<b class="k">退職（解雇の事由を含む）</b></td></tr>
+<tr><th>相対的必要記載事項</th><td>定めをする場合に記載（<b class="k">退職手当</b>など）</td></tr></table>
+<ul><li>作成・変更時は過半数組合（代表者）の<b class="k">意見を聴く</b>（同意は不要）</li>
+<li>寄宿舎規則の起床・就寝・外出外泊・行事・食事・安全衛生に関する事項は<b class="k">同意が必要</b></li>
+<li>周知：見やすい場所への掲示・備付け、書面の交付、電子媒体と閲覧機器の設置のいずれか</li></ul>`],
+
+/* ================= 労働衛生 ================= */
+["H","h-hashira","衛生管理の3つの柱",0,`
+<table><tr><th>作業環境管理</th><td>有害因子を職場から<b class="k">除去</b>する（測定→評価→改善）</td></tr>
+<tr><th>作業管理</th><td>有害因子を<b class="k">少なくする</b>（作業標準、作業方法の改善、作業時間の管理）</td></tr>
+<tr><th>健康管理</th><td>労働者の健康の保持増進（健康診断、健康測定など）</td></tr></table>`],
+
+["H","h-onnetsu","温熱環境",1,`
+<p>温度感覚を左右する4要素：<b class="k">気温・湿度・気流・ふく射熱</b>。</p>
+<table><tr><th>指標</th><th>使う要素</th></tr>
+<tr><td>実効温度</td><td>気温・湿度・気流（<b class="k">ふく射熱は含まない</b>）</td></tr>
+<tr><td>修正実効温度</td><td>4要素すべて</td></tr>
+<tr><td>不快指数</td><td>気温・湿度（0.72×（乾球＋湿球）＋40.6）</td></tr></table>
+<p>相対湿度＝空気中の水蒸気量÷その温度の飽和水蒸気量×100。アスマン通風乾湿計は気流やふく射熱の影響を受けない。ふく射熱は<b class="k">黒球温度計</b>で測る。</p>
+<table><tr><th>WBGT（屋外・日射あり）</th><td>0.7×自然湿球＋0.2×黒球＋0.1×乾球</td></tr>
+<tr><th>WBGT（屋内・日射なし）</th><td>0.7×自然湿球＋0.3×黒球（<b class="k">乾球は使わない</b>）</td></tr></table>
+<ul><li>WBGT値が基準値を<b class="k">超える</b>と熱中症のリスクが高い</li>
+<li>基準値は、身体負荷が大きいほど<b class="k">小さく</b>、暑熱順化者ほど<b class="k">大きい</b></li>
+<li>至適温度は作業強度が大きいほど<b class="k">低く</b>なる</li></ul>`],
+
+["H","h-shikankyo","視環境（照明・彩色）",1,`
+<ul>
+<li>全般照明の照度は、局所照明の<b class="k">10分の1以上</b></li>
+<li>作業面には適度な影があるほうがよい。光の色は通常は白色光</li>
+<li>目の高さ<b class="k">より下</b>の壁・床は<b class="k">濁色</b>、目の高さより上は<b class="k">明るい色</b></li>
+<li>1ルクス＝1カンデラの光源から<b class="k">1m</b>離れた直角の面の明るさ</li>
+<li>前方から明かりをとるとき、目と光源を結ぶ線と視線の角度は<b class="k">30°以上</b></li>
+<li>採光：入射角（仰角）<b class="k">28°以上</b>、開角5°以上</li>
+</ul>
+<p>照明の種類：全般照明、局所照明、直接照明、半間接照明、間接照明（天井や壁に反射させる）。</p>
+<p class="x">「全般照明は局所照明の10分の1以下」「目の高さより上を濁色」は誤り。</p>`],
+
+["H","h-shokuchudoku","食中毒",1,`
+<table><tr><th>分類</th><th>原因</th><th>特徴</th></tr>
+<tr><td rowspan="4">感染型</td><td>腸炎ビブリオ</td><td><b class="k">病原性好塩菌</b>。魚介類。熱に弱い</td></tr>
+<tr><td>サルモネラ</td><td>鶏卵・食肉。腸管内で増殖</td></tr>
+<tr><td><b class="k">カンピロバクター</b></td><td>鶏肉など</td></tr>
+<tr><td>病原性大腸菌（O-157）</td><td>ベロ毒素を産生</td></tr>
+<tr><td>生体内毒素型</td><td>ウェルシュ菌</td><td>肉・魚の煮込み料理など。腸管内でエンテロトキシン</td></tr>
+<tr><td rowspan="3">毒素型</td><td><b class="k">黄色ブドウ球菌</b></td><td>エンテロトキシンは<b class="k">熱に強い</b></td></tr>
+<tr><td><b class="k">ボツリヌス菌</b></td><td>嫌気性（缶詰・真空包装）。<b class="k">神経毒</b>、致死率が高い</td></tr>
+<tr><td>セレウス菌</td><td>米・小麦の食品</td></tr></table>
+<p>ノロウイルス：<b class="k">冬季</b>に多く、潜伏期間<b class="k">1〜2日</b>。アルコール消毒は効きにくく、<b class="k">加熱・煮沸・塩素系消毒剤</b>が有効。</p>
+<p>自然毒：ふぐ（テトロドトキシン）、貝毒、毒キノコ。化学性：ヒ素、農薬、<b class="k">ヒスタミン</b>（赤身魚。加熱しても分解されない）。</p>
+<p class="x">「毒素型にカンピロバクター」は誤り（公表問題で2回とも出た）。</p>`],
+
+["H","h-kansen","感染症",0,`
+<ul>
+<li>病原性が人間の抵抗力より強くなると感染が成立する</li>
+<li>症状がなく病原体をばらまく人を<b class="k">保菌者（キャリア）</b>という</li>
+<li><b class="k">日和見感染</b>：抵抗力が非常に弱いときに、普段は感染しない菌で発症する</li>
+<li><b class="k">不顕性感染</b>：感染は成立しているが症状が出ない状態が続く</li>
+</ul>
+<table><tr><th>接触感染</th><td>感染源と直接接触</td></tr>
+<tr><th>飛沫感染</th><td>咳・くしゃみの飛沫（インフルエンザ、風邪）。飛沫は空気中を漂い続けない</td></tr>
+<tr><th>空気感染</th><td>水分が蒸発した<b class="k">5μm以下</b>の粒子が長時間浮遊（<b class="k">結核・はしか・水ぼうそう</b>）</td></tr></table>
+<p>インフルエンザで流行するのは<b class="k">A型とB型</b>。ウイルスの排出期間は約7日で、量は解熱とともに減る。結核は2週間以上続く咳や微熱が特徴。</p>`],
+
+["H","h-jouhoukiki","情報機器作業ガイドライン",0,`
+<ul>
+<li>書類上・キーボード上の照度は<b class="k">300ルクス以上</b></li>
+<li>画面と目の距離は<b class="k">40cm以上</b>。画面の上端は目の高さと<b class="k">ほぼ同じか、やや下</b>。文字の高さは3mm以上</li>
+<li>グレア（まぶしさ）を防ぐため、間接照明などを使う</li>
+<li>一連続作業時間は<b class="k">1時間を超えない</b>。次の作業までに<b class="k">10〜15分</b>の作業休止、作業中にも1〜2回の小休止</li>
+<li>目の障害は<b class="k">自覚症状が他覚的所見より先に</b>出ることが多い</li>
+</ul>
+<p>健康診断：業務歴・既往歴、自覚症状、<b class="k">眼科学的検査</b>、<b class="k">筋骨格系</b>の検査。1日4時間未満の者は自覚症状を訴える者だけが対象。一般健診と併せて実施してよい。</p>
+<p class="x">上肢のX線検査や下肢の運動機能検査は項目に含まれない。</p>`],
+
+["H","h-noushin","脳血管疾患・虚血性心疾患",1,`
+<table><tr><th>くも膜下出血</th><td>ハンマーで殴られたような急激で激しい頭痛</td></tr>
+<tr><th>脳出血</th><td>頭痛・嘔吐・意識障害</td></tr>
+<tr><th>脳血栓症</th><td>脳の血管<b class="k">自体</b>の動脈硬化で詰まる。半身麻痺・言語障害など</td></tr>
+<tr><th>脳塞栓症</th><td>心臓などでできた血栓が<b class="k">流れてきて</b>詰まる</td></tr>
+<tr><th>狭心症</th><td>冠動脈が狭くなる。心筋は壊死しない（<b class="k">可逆的</b>）。発作は数分〜<b class="k">15分以内</b></td></tr>
+<tr><th>心筋梗塞</th><td>冠動脈が完全に詰まり心筋が壊死（<b class="k">不可逆的</b>）。痛みが長く続く</td></tr></table>
+<p><b class="k">運動負荷心電図</b>は虚血性心疾患の発見に有用。</p>`],
+
+["H","h-kanki","気積・必要換気量",1,`
+<p>吸気：窒素約78%、酸素約21%、CO₂約0.03〜0.04%。呼気：酸素約<b class="k">16%</b>、CO₂約<b class="k">4%</b>。</p>
+<p class="formula">必要換気量（m³/h）＝在室者全員の呼出CO₂量 ÷（室内CO₂基準濃度 − 外気CO₂濃度）</p>
+<p>室内CO₂基準濃度は<b class="k">0.1%（1,000ppm）</b>。ppmで計算するときは×1,000,000。必要換気量は労働の強度で変わる。</p>`],
+
+["H","h-taisha","基礎代謝・エネルギー代謝率",1,`
+<ul>
+<li>基礎代謝量：<b class="k">覚醒・横臥・安静</b>時の値（睡眠時ではない）。成人で男約1,500kcal、女約1,200kcal</li>
+<li>基礎代謝量はほぼ<b class="k">体表面積に正比例</b>する</li>
+<li>安静時（座っているだけ）の消費は基礎代謝量の約<b class="k">1.2倍</b></li>
+</ul>
+<p class="formula">エネルギー代謝率（RMR）＝（作業時の総消費 − 安静時の消費）÷ 基礎代謝量</p>
+<ul><li>性別・年齢・体格の差がほとんどない。<b class="k">動的筋作業</b>の強度の指標に有用で、精神的作業や静的作業には向かない</li>
+<li>座って安静にしている状態のRMRは<b class="k">0</b>。RMR4超は重作業、7は大きな疲労状態</li></ul>`],
+
+["H","h-kenkousokutei","健康測定・健康保持増進",1,`
+<table><tr><th></th><th>健康診断</th><th>健康測定</th></tr>
+<tr><th>目的</th><td>疾病の<b class="k">早期発見</b></td><td>健康の<b class="k">保持増進</b></td></tr>
+<tr><th>対象</th><td>有所見者の発見</td><td>全労働者</td></tr></table>
+<p>健康測定は、生活状況調査、医学的検査、運動機能検査（筋力：握力、柔軟性：体前屈、平衡性：閉眼片足立ち、全身持久力：最大酸素摂取量など）を行い、運動指導・メンタルヘルスケア・栄養指導・口腔保健指導・保健指導につなげる。</p>
+<p>健康保持増進指針：計画を作り、産業医・衛生管理者・保健師・人事労務スタッフや事業場外資源を活用する。高年齢者には<b class="k">フレイル</b>や<b class="k">ロコモティブシンドローム</b>の予防を意識する。</p>`],
+
+["H","h-toukei","労働衛生管理統計",1,`
+<table><tr><th>疾病休業日数率</th><td>疾病休業延日数 ÷ 延所定労働日数 × <b class="k">100</b></td></tr>
+<tr><th>病休件数年千人率</th><td>疾病休業件数 ÷ 在籍労働者数 × <b class="k">1,000</b></td></tr>
+<tr><th>病休度数率</th><td>疾病休業<b class="k">件数</b> ÷ 延実労働時間数 × <b class="k">1,000,000</b></td></tr>
+<tr><th>病休強度率</th><td>疾病休業<b class="k">延日数</b> ÷ 延実労働時間数 × <b class="k">1,000</b></td></tr></table>
+<p class="m">度数率は「件」で100万、強度率は「日」で1,000</p>
+<ul>
+<li>偽陽性率＝疾病なしで陽性 ÷ <b class="k">疾病なしの人数</b>。偽陰性率＝疾病ありで陰性 ÷ <b class="k">疾病ありの人数</b></li>
+<li>スクリーニングレベルを低く設定すると<b class="k">偽陽性率が高く</b>なる</li>
+<li>正規分布のばらつきは<b class="k">標準偏差</b>（分散の平方根）で表す</li>
+<li>人数などは<b class="k">計数データ</b>、身長・体重などは<b class="k">計量データ</b></li>
+<li>平均が同じでも分散が違えば別の特徴を持つ集団。相関があっても因果関係とは限らない</li>
+<li><b class="k">有所見率</b>＝ある時点の割合（静態データ）、<b class="k">発生率</b>＝一定期間の割合（動態データ）</li>
+</ul>`],
+
+["H","h-mental","心の健康の保持増進のための指針",0,`
+<p>4つのケア：</p>
+<ol><li><b class="k">セルフケア</b>（労働者自身）</li><li><b class="k">ラインによるケア</b>（管理監督者）</li><li><b class="k">事業場内産業保健スタッフ等</b>によるケア</li><li><b class="k">事業場外資源</b>によるケア</li></ol>
+<p class="x">同僚によるケア、家族によるケア、衛生委員会によるケアは4つのケアに含まれない。</p>
+<ul><li>心の健康づくり計画は<b class="k">衛生委員会</b>などで調査審議して策定する</li>
+<li>健康情報を主治医や家族から得るときは、あらかじめ<b class="k">本人の同意</b>を得る</li></ul>
+<table><tr><th>一次予防</th><td>不調を<b class="k">未然に防止</b></td></tr><tr><th>二次予防</th><td>不調を<b class="k">早期に発見</b>し対応</td></tr><tr><th>三次予防</th><td><b class="k">職場復帰</b>を支援</td></tr></table>`],
+
+["H","h-youtsu","職場における腰痛予防対策指針",1,`
+<ul>
+<li>満18歳以上の男性が人力で扱う重量は、体重の約<b class="k">40%以下</b>。女性はその<b class="k">60%</b>程度</li>
+<li>腰部保護ベルトは<b class="k">一律に使わせず</b>、労働者ごとに効果を確認して判断</li>
+<li>作業標準（作業時間・量・方法・機器）を策定する</li>
+<li>持ち上げは重心を低くし、膝を軽く曲げ、急な動きや前屈・ひねりを避ける</li>
+<li>重量や重心の偏りを表示する。床は凹凸がなく滑りにくいものがよい</li>
+<li>配置前の健診：既往歴・業務歴、自覚症状、<b class="k">脊柱の検査</b>、神経学的検査、脊柱機能検査（必要に応じて画像診断など）</li>
+<li>配置後は<b class="k">6か月以内</b>ごとに1回</li>
+<li>腰痛の要因には、職場の対人ストレスなどの<b class="k">心理・社会的要因</b>もある</li>
+</ul>`],
+
+["H","h-kaiteki","快適な職場環境の形成のための指針",0,`
+<p>4つの観点：<b class="k">継続的かつ計画的な取組み</b>、<b class="k">労働者の意見の反映</b>、<b class="k">個人差への配慮</b>、<b class="k">潤いへの配慮</b>。</p>`],
+
+["H","h-kitsuen","受動喫煙防止ガイドライン",1,`
+<table><tr><th>第一種施設</th><td>学校・病院・児童福祉施設・行政機関の庁舎など。原則<b class="k">敷地内禁煙</b>（特定屋外喫煙場所は設置可）</td></tr>
+<tr><th>第二種施設</th><td>事務所・工場・ホテル・飲食店など。原則<b class="k">屋内禁煙</b>（喫煙専用室などは設置可）</td></tr>
+<tr><th>喫煙目的施設</th><td>公衆喫煙所、たばこ販売店、喫煙を目的とするバーなど</td></tr></table>
+<p>喫煙専用室の要件：</p>
+<ul><li>出入口で室外から室内への気流が<b class="k">0.2m/s以上</b></li><li>壁・天井で区画し、煙を<b class="k">屋外に排気</b></li><li>出入口に標識を掲示</li><li><b class="k">20歳未満</b>は立入禁止（清掃などの業務でも不可）</li><li>専ら喫煙用なので、室内での<b class="k">飲食はできない</b></li></ul>
+<p>「屋内」＝屋根があり、側壁がおおむね半分以上覆われている場所。</p>`],
+
+["H","h-oshms","労働安全衛生マネジメントシステム指針",0,`
+<p>安全衛生方針の表明 → 危険性・有害性等の調査と措置 → 安全衛生目標の設定 → 安全衛生計画の作成・実施・評価・改善、を体系的・継続的に行う自主的な仕組み。生産管理などと一体で運用する。</p>
+<p class="x">機械・設備・化学物質への具体的な措置を定めたものではない。</p>
+<p>システム監査は、計画の期間を考慮して<b class="k">事業者</b>が行う調査・評価。</p>`],
+
+["H","h-kyumei","一次救命処置",1,`
+<ol>
+<li>周囲の<b class="k">安全を確認</b></li>
+<li>反応を確認。反応があれば<b class="k">回復体位</b>で経過観察</li>
+<li>応援を呼び、119番通報とAEDを依頼</li>
+<li>呼吸を<b class="k">10秒以内</b>で確認。普段どおりの呼吸がない、死戦期呼吸、判断に迷うときは心停止とみなす</li>
+<li>胸骨圧迫：胸骨の<b class="k">下半分</b>を、約<b class="k">5cm</b>（6cmを超えない）、<b class="k">100〜120回/分</b>で30回。救助者が複数なら1〜2分ごとに交代</li>
+<li>技術と意思があれば気道確保して人工呼吸2回（1秒かけて）。圧迫の中断は10秒以内。以後30：2を繰り返す</li>
+<li>AED：電気ショック後も、ショック不要のときも、<b class="k">直ちに胸骨圧迫を再開</b>。約2分ごとに解析</li>
+</ol>
+<p>普段どおりの呼吸があれば、気道を確保して観察を続け、救急隊を待つ。</p>
+<p class="x">「胸骨の上半分を圧迫」は誤り（公表問題で2回とも出た）。</p>`],
+
+["H","h-oukyu","応急手当（出血・熱傷）",0,`
+<table><tr><th>毛細血管性出血</th><td>じわじわにじみ出る</td></tr><tr><th>静脈性出血</th><td>ゆっくり湧き出る</td></tr><tr><th>動脈性出血</th><td>拍動性で多量、<b class="k">鮮紅色</b></td></tr></table>
+<ul><li>血液量は体重の約<b class="k">8%</b>（約13分の1）。<b class="k">3分の1</b>を失うと生命の危険、2分の1で死亡</li>
+<li>ショック症状：顔面蒼白、手足の冷え、弱く速い脈、浅く速い呼吸（高熱は出ない）</li>
+<li>止血は<b class="k">直接圧迫法</b>が基本。次に間接圧迫法、止血帯法は最後の手段。細いひもは使わない</li></ul>
+<table><tr><th>Ⅰ度</th><td>皮膚が赤くなる</td></tr><tr><th>Ⅱ度</th><td><b class="k">水疱</b>ができる</td></tr><tr><th>Ⅲ度</th><td>皮膚組織が壊死</td></tr></table>
+<ul><li>45℃程度の熱源に長時間触れる<b class="k">低温熱傷</b>は深く治りにくい</li>
+<li>水で冷やす（油や中和剤は使わない）。広範囲を長時間冷やすと低体温に注意</li>
+<li>水疱は破らない。衣服の上からの熱傷は無理に脱がさない。タールやアスファルトははがさない</li></ul>`],
+
+["H","h-kossetsu","骨折・熱中症",1,`
+<table><tr><th>単純骨折</th><td><b class="k">皮膚の損傷がない</b>骨折</td></tr>
+<tr><th>複雑骨折（開放骨折）</th><td>骨折端が<b class="k">皮膚から出ている</b>（骨が粉々という意味ではない）</td></tr>
+<tr><th>不完全骨折</th><td>骨に<b class="k">ひび</b>が入った状態</td></tr>
+<tr><th>完全骨折</th><td>完全に折れ、変形や<b class="k">軋轢音</b>がみられる</td></tr></table>
+<ul><li>骨折部は<b class="k">動かさない</b>。突出した骨は戻さない</li><li>副子は骨折部の上下の関節まで固定できる長さのものを使う</li><li>脊髄損傷が疑われるときは<b class="k">硬い板</b>に乗せて運ぶ</li></ul>
+<table><tr><th>熱失神</th><td>皮膚に血液がたまり脳血流が減る。めまい・失神、発熱なし → 涼しい場所で水分</td></tr>
+<tr><th>熱けいれん</th><td>水分だけ補給して塩分が不足。<b class="k">筋肉のけいれん</b> → 水分と塩分</td></tr>
+<tr><th>熱疲労</th><td>水分と塩分の不足。倦怠感、ショック症状 → 水分と塩分、足を高く</td></tr>
+<tr><th>熱射病</th><td>体温調節中枢の変調。<b class="k">発汗停止・高体温・意識障害</b> → 急いで冷やす</td></tr></table>`],
+
+/* ================= 労働生理 ================= */
+["P","p-junkan","循環器系",0,`
+<table><tr><th>肺循環</th><td>右心室 → <b class="k">肺動脈</b> → 肺 → <b class="k">肺静脈</b> → 左心房</td></tr>
+<tr><th>体循環</th><td>左心室 → 大動脈 → 全身 → 大静脈 → 右心房</td></tr></table>
+<p><b class="k">肺動脈には静脈血</b>、<b class="k">肺静脈には動脈血</b>が流れる。動脈は心臓から出る血管、静脈は心臓に戻る血管。</p>
+<ul><li>右心房の<b class="k">洞房結節</b>で発生した刺激が刺激伝導系を通って心筋に伝わり、拍動する</li>
+<li>心臓自体には<b class="k">冠状動脈</b>が酸素と栄養を送る</li>
+<li>拍動は<b class="k">自律神経</b>の支配を受ける。脈拍は一般に手首の<b class="k">橈骨動脈</b>で測る</li></ul>`],
+
+["P","p-kokyu","呼吸器系",1,`
+<table><tr><th>外呼吸</th><td>肺胞の空気と毛細血管の血液とのガス交換</td></tr><tr><th>内呼吸（組織呼吸）</th><td>組織細胞と毛細血管の血液とのガス交換</td></tr></table>
+<ul>
+<li>呼吸筋（<b class="k">肋間筋と横隔膜</b>）の収縮・弛緩で胸郭の容積が変わり、肺が受動的に伸縮する（肺自体に筋肉はない）</li>
+<li>胸郭の容積が増すと内圧が下がり、空気が入る</li>
+<li>血液中の<b class="k">CO₂の増加</b>が<b class="k">延髄</b>の呼吸中枢を刺激し、呼吸が増える</li>
+<li>呼吸数は1分間に約<b class="k">16回</b></li>
+<li>チェーンストークス呼吸：浅い呼吸から深い呼吸、また浅くなって無呼吸、を繰り返す</li>
+</ul>
+<p class="x">呼吸中枢は視床下部ではなく延髄（視床下部は体温調節中枢）。</p>`],
+
+["P","p-kinniku","筋肉",0,`
+<table><tr><th>骨格筋</th><td>横紋筋・<b class="k">随意筋</b>（運動神経）</td></tr>
+<tr><th>平滑筋（内臓・血管）</th><td><b class="k">不随意筋</b>（自律神経）</td></tr>
+<tr><th>心筋</th><td>不随意筋だが<b class="k">横紋筋</b></td></tr></table>
+<ul>
+<li>等張性収縮：長さを変えながら力を出す（動的作業）。<b class="k">等尺性収縮</b>：長さを変えずに力を出す（姿勢保持などの静的作業）</li>
+<li>ATPがADPに分解されるときのエネルギーで収縮する。ATPは筋肉や肝臓のグリコーゲンを分解して再合成する</li>
+<li>酸素が十分ならグリコーゲンは水とCO₂に、不足すると<b class="k">乳酸</b>になる</li>
+<li>筋力（引き上げる重さ）は筋の<b class="k">太さ（断面積）</b>に、引き上げる高さは筋の<b class="k">長さ</b>に比例</li>
+<li>強い力を使い続けると筋線維が太くなる（<b class="k">活動性肥大</b>）。断面積あたりの筋力に性差・年齢差はほとんどない</li>
+<li>反射：膝蓋腱反射などの伸張反射、熱いものに触れて手を引く屈曲反射</li>
+</ul>`],
+
+["P","p-shouka","消化器系",1,`
+<table><tr><th>栄養素</th><th>消化酵素</th><th>分解産物</th></tr>
+<tr><td>糖質</td><td>アミラーゼ（唾液・膵液）、マルターゼ</td><td>ブドウ糖</td></tr>
+<tr><td>蛋白質</td><td><b class="k">ペプシン</b>（胃）、<b class="k">トリプシン</b>（膵液）</td><td>アミノ酸</td></tr>
+<tr><td>脂肪</td><td><b class="k">リパーゼ</b>（膵液）</td><td>脂肪酸・モノグリセリド</td></tr>
+<tr><td>ビタミン・無機塩</td><td>分解されずにそのまま吸収</td><td>—</td></tr></table>
+<ul>
+<li>ブドウ糖とアミノ酸は小腸の<b class="k">絨毛の毛細血管</b>から吸収され、<b class="k">門脈</b>で肝臓へ。脂肪はリンパ管へ</li>
+<li>大腸は主に<b class="k">水分</b>を吸収</li>
+<li>ペプシノーゲンは胃酸でペプシンになる。酸性の消化物が十二指腸に入るとアルカリ性の膵液が出る</li>
+<li>胆汁は<b class="k">アルカリ性</b>で<b class="k">消化酵素を含まない</b>。脂肪を乳化して分解を助ける</li>
+</ul>
+<p class="x">「胆汁にトリプシンが含まれる」「胆汁は酸性」は誤り。</p>`],
+
+["P","p-kanzou","肝臓・膵臓",1,`
+<p>小腸 → 門脈 → 肝臓 → 肝静脈 → 大静脈 → 右心房</p>
+<ul>
+<li>有害物質の分解（解毒）</li>
+<li>ブドウ糖を<b class="k">グリコーゲン</b>にして蓄え、必要なときブドウ糖に戻す。飢餓時は<b class="k">糖新生</b></li>
+<li>アルブミン・<b class="k">フィブリノーゲン</b>などの血漿蛋白を合成</li>
+<li>アンモニアから<b class="k">尿素</b>を合成</li>
+<li><b class="k">コレステロール</b>とリン脂質を合成。脂肪酸の合成と分解</li>
+<li>脾臓で赤血球が壊れてできた<b class="k">ビリルビン</b>を胆汁へ排出</li>
+<li><b class="k">胆汁</b>をつくる</li>
+</ul>
+<p class="x">肝臓は赤血球（ヘモグロビン）と乳酸を作らない。ビリルビンを分解しない。</p>
+<p>膵臓：消化酵素を十二指腸に分泌し、ランゲルハンス島から血糖を調節するホルモン（インスリン・グルカゴン）を分泌する。</p>`],
+
+["P","p-jinzou","腎臓・泌尿器系",1,`
+<p>糸球体 → ボウマン嚢 → 尿細管 → 腎盂 → 尿管 → 膀胱 → 尿道</p>
+<ul>
+<li>糸球体で、<b class="k">血球と蛋白質以外</b>の成分がボウマン嚢に濾し出されて原尿になる</li>
+<li>原尿の<b class="k">水分の大部分</b>、電解質、グルコース、アミノ酸は<b class="k">尿細管</b>で再吸収される</li>
+<li>尿量は1日約1.5L、比重1.010〜1.025。水分を多くとると比重は低くなる。尿は通常<b class="k">弱酸性</b></li>
+<li>血糖値が正常でも体質的に尿に糖が出るものを<b class="k">腎性糖尿</b>という</li>
+<li>血中の尿素窒素（BUN）は腎機能が低下すると<b class="k">高く</b>なる</li>
+</ul>`],
+
+["P","p-shinkei","神経系",1,`
+<p>中枢神経（脳・脊髄）と末梢神経（体性神経：運動・感覚／自律神経：交感・副交感）。</p>
+<ul>
+<li>神経細胞（ニューロン）は細胞体・軸索・樹状突起からなる</li>
+<li>細胞体の集まりは、中枢では<b class="k">神経核</b>、末梢では<b class="k">神経節</b></li>
+<li>交感神経は心臓の働きを<b class="k">促進</b>し、消化管の働きを<b class="k">抑制</b>する。副交感神経はその逆</li>
+<li>灰白質には神経細胞、白質には神経線維が多い。有髄神経は無髄神経より伝導が速い</li>
+<li>神経は疲労しにくいが、酸素が不足すると早く疲労する</li>
+</ul>
+<table><tr><th>前頭葉</th><td>運動・思考・運動性言語</td></tr><tr><th>頭頂葉</th><td>皮膚感覚（触圧覚・温冷覚・痛覚）</td></tr><tr><th>側頭葉</th><td>聴覚・嗅覚・記憶・感覚性言語</td></tr><tr><th>後頭葉</th><td>視覚</td></tr><tr><th>延髄</th><td><b class="k">呼吸中枢</b>・心臓中枢</td></tr><tr><th>視床下部</th><td><b class="k">体温調節中枢</b></td></tr></table>`],
+
+["P","p-naibunpi","内分泌・代謝",1,`
+<table><tr><th>異化</th><td>体脂肪やグリコーゲンを<b class="k">分解</b>してエネルギーを得る（ATPができる）</td></tr><tr><th>同化</th><td>ATPのエネルギーで蛋白質など生体に必要な物質を<b class="k">合成</b>する</td></tr></table>
+<table><tr><th>ホルモン</th><th>分泌</th><th>働き</th></tr>
+<tr><td>インスリン</td><td>膵臓</td><td>血糖を<b class="k">下げる</b></td></tr>
+<tr><td>グルカゴン</td><td>膵臓</td><td>血糖を上げる</td></tr>
+<tr><td>アドレナリン</td><td><b class="k">副腎髄質</b></td><td>血糖を上げる</td></tr>
+<tr><td>コルチゾール</td><td><b class="k">副腎皮質</b></td><td>血糖を上げる</td></tr>
+<tr><td>アルドステロン</td><td>副腎皮質</td><td>体液中の<b class="k">塩類バランス</b></td></tr>
+<tr><td>パラソルモン</td><td>副甲状腺</td><td>体液中の<b class="k">カルシウム</b>バランス</td></tr>
+<tr><td>メラトニン</td><td>松果体</td><td><b class="k">睡眠</b>と覚醒のリズム</td></tr>
+<tr><td>セクレチン</td><td>十二指腸</td><td>膵液の分泌を促す</td></tr></table>
+<p class="m">塩がアル（アルドステロン）、骨はパラソル（パラソルモン）、目がトロン（メラトニン）</p>
+<p>BMI＝体重（kg）÷身長（m）²。<b class="k">25以上</b>で肥満、18.5未満で低体重。メタボリックシンドロームは腹囲（男85cm・女90cm以上）に加え、脂質・血圧・血糖のうち2つ以上。</p>`],
+
+["P","p-kankaku","感覚器系",1,`
+<table><tr><th>近視</th><td>眼軸が長い。凹レンズ</td></tr><tr><th>遠視</th><td>眼軸が短い。凸レンズ</td></tr><tr><th>乱視</th><td>角膜のゆがみ・凹凸。円柱レンズ</td></tr></table>
+<ul>
+<li>網膜の<b class="k">錐状体は色</b>（明るい所）、<b class="k">杆状体は明暗</b>（暗い所）を感じる。暗順応は明順応より時間がかかる</li>
+<li><b class="k">毛様体筋</b>が<b class="k">水晶体</b>の厚さを調節する（近くを見ると厚く、遠くを見ると薄く）。虹彩は瞳孔の大きさを変える</li>
+<li>聞こえる範囲は約20〜20,000Hz。騒音性難聴は<b class="k">4,000Hz</b>付近から始まる（内耳の有毛細胞の障害）</li>
+<li>音は外耳道 → 鼓膜 → 耳小骨（中耳） → 蝸牛（内耳） → 蝸牛神経</li>
+<li><b class="k">前庭</b>は体の傾き、<b class="k">半規管</b>は回転を感じる。どちらも<b class="k">内耳</b></li>
+<li>嗅覚は鋭敏だが同じ臭いに<b class="k">疲労しやすい</b>。味覚は酸味・甘味・塩味・苦味・うま味</li>
+<li>皮膚感覚では<b class="k">痛覚点</b>が最も多い。冷覚は温覚より鋭敏で、冷感はすぐ、温感は徐々に現れる</li>
+<li>刺激の強さと感覚の強さは比例しない。内臓感覚は部位の特定がしにくい</li>
+</ul>`],
+
+["P","p-ketsueki","血液",1,`
+<table><tr><th>成分</th><th>特徴</th></tr>
+<tr><td>赤血球</td><td><b class="k">骨髄</b>でつくられ寿命約<b class="k">120日</b>。ヘモグロビンが酸素を運ぶ。男約500万・女約450万/mm³。ヘマトクリット（赤血球の容積の割合）は男約45%・女約40%</td></tr>
+<tr><td>白血球</td><td>4,000〜8,500/mm³。<b class="k">好中球</b>は細菌を貪食（アメーバ様運動）。<b class="k">リンパ球</b>は免疫（Bリンパ球：抗体を産生、Tリンパ球：細胞性免疫）</td></tr>
+<tr><td>血小板</td><td>核を持たず、止血・凝固に関わる</td></tr>
+<tr><td>血漿</td><td>血液の約<b class="k">55%</b>。水が約91%。血漿蛋白は肝臓でつくられ、アルブミン（浸透圧）、グロブリン（抗体）、フィブリノーゲン（凝固）</td></tr></table>
+<ul><li>凝固：血漿中の<b class="k">フィブリノーゲン</b>が<b class="k">フィブリン</b>に変わって血球を絡め取る</li>
+<li>凝集：赤血球の<b class="k">凝集原</b>と血清中の<b class="k">凝集素</b>の反応（凝固とは別）</li>
+<li>男女差がないもの：<b class="k">白血球数と血小板数</b></li>
+<li>血清＝血漿からフィブリノーゲンを除いたもの。A型の血清は抗B抗体を持つ</li></ul>
+<table><tr><th>γ-GTP</th><td>肝細胞の酵素。特に<b class="k">アルコール</b>で高値</td></tr>
+<tr><th>HDLコレステロール</th><td>善玉。<b class="k">低い</b>と動脈硬化のリスク</td></tr>
+<tr><th>LDLコレステロール</th><td>悪玉。高いとリスク</td></tr>
+<tr><th>中性脂肪</th><td>空腹時にも高値が続くとリスク</td></tr>
+<tr><th>尿酸</th><td>高尿酸血症は痛風や尿路結石の原因</td></tr>
+<tr><th>HbA1c</th><td>過去<b class="k">2〜3か月</b>の平均的な血糖値。直前の食事の影響を受けない</td></tr></table>
+<p class="m">Lady（LDL）は悪の親玉</p>`],
+
+["P","p-meneki","免疫",1,`
+<ul>
+<li>抗原：免疫細胞が異物と認識する物質（蛋白質・糖質など）</li>
+<li>抗体：<b class="k">体液性免疫</b>で作られる<b class="k">免疫グロブリン</b>という蛋白質。抗原に結合して働きを抑える</li>
+<li><b class="k">体液性免疫</b>：Bリンパ球が抗体を産生して攻撃</li>
+<li><b class="k">細胞性免疫</b>：Tリンパ球が直接、異物を攻撃</li>
+<li>アレルギー：抗原に過剰に反応して自分の組織を傷つける（気管支ぜんそく、アトピー性皮膚炎など）。原因となる抗原を<b class="k">アレルゲン</b>という</li>
+</ul>
+<p class="x">「抗体で攻撃するのが細胞性免疫」は誤り（入れ替えで出題）。</p>`],
+
+["P","p-stress","ストレス",0,`
+<ul>
+<li>反応の原因となる刺激が<b class="k">ストレッサー</b>。影響には<b class="k">個人差</b>がある</li>
+<li>過度なストレッサーは自律神経系と内分泌系を介して心身を抑圧するが、<b class="k">適度</b>なら意欲の向上につながる</li>
+<li><b class="k">昇進・昇格</b>や、騒音・気温などの物理的要因もストレッサーになる</li>
+<li>典型的な反応として、ノルアドレナリン・アドレナリン（カテコールアミン）や<b class="k">副腎皮質ホルモン</b>の分泌が<b class="k">亢進</b>する</li>
+</ul>`],
+
+["P","p-taion","体温調節",1,`
+<ul>
+<li>体温調節中枢は<b class="k">間脳の視床下部</b></li>
+<li><b class="k">不感蒸泄</b>：発汗とは別に、<b class="k">皮膚と呼気</b>から常に水分が失われる。1日約850gで、放熱量の約25%</li>
+<li>暑いと皮膚の血管が<b class="k">拡張</b>し、放熱を促進。寒いと血管が<b class="k">収縮</b>し、放熱を抑える</li>
+<li>温熱性発汗は全身（手のひら・足の裏は少ない）。精神性発汗は手のひら・足の裏・脇の下・額</li>
+<li>水1gの蒸発で約0.58kcalの気化熱。体重70kgの人から<b class="k">100g</b>蒸発すると体温が約<b class="k">1℃</b>下がる</li>
+<li>外部環境が変わっても体内を一定に保つ性質が<b class="k">恒常性（ホメオスタシス）</b>。神経系と内分泌系で調整</li>
+</ul>
+<p class="x">「不感蒸泄は呼気だけで失われる水分」は誤り（公表問題で2回とも出た）。</p>`],
+
+["P","p-hirou","疲労・睡眠",1,`
+<ul>
+<li>近年は<b class="k">精神的疲労</b>の割合が増えている</li>
+<li>メッツ：座って安静にしている状態を<b class="k">1</b>として何倍か。普通歩行は<b class="k">3メッツ</b></li>
+<li>自覚症状は「疲労蓄積度自己診断チェックリスト」などの調査票で捉える</li>
+<li>他覚症状は<b class="k">フリッカー検査</b>、2点弁別閾検査、心拍変動解析などで捉える</li>
+</ul>
+<p class="x">ブローカ法は肥満度の評価、ハイムリック法はのどに詰まった異物の除去方法で、疲労の検査ではない。</p>
+<ul>
+<li>睡眠中は体温が下がり、呼吸数が減る。<b class="k">副交感神経</b>が優位になり心臓の働きは抑えられる</li>
+<li><b class="k">レム睡眠</b>は眼球運動を伴う浅い眠り、<b class="k">ノンレム睡眠</b>は大脳を休める深い眠り。交互に繰り返す</li>
+<li>体内時計の周期は約<b class="k">25時間</b>で、外界の24時間に同調する（概日リズム）</li>
+<li>夜勤後の昼間の睡眠は入眠まで時間がかかり、短く、質も下がる。就寝直前の過食は不眠を招く</li>
+<li><b class="k">コルチゾール</b>は明け方から増えて起床前後に最高。<b class="k">メラトニン</b>は夜間に増える</li>
+</ul>`]
+];
+
+
+(function(){
+"use strict";
+var SUBJ={L:"関係法令",H:"労働衛生",P:"労働生理"};
+var KEY="eisei2-note-v1";
+var state={done:{},filter:"all",sheet:false};
+try{var s=JSON.parse(localStorage.getItem(KEY)||"null");if(s){state.done=s.done||{};state.sheet=!!s.sheet;}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({done:state.done,sheet:state.sheet}));}catch(e){}}
+function $(id){return document.getElementById(id);}
+var list=$("list");
+
+/* build cards once */
+var els={};
+var cur=null;
+CARDS.forEach(function(c){
+  if(c[0]!==cur){cur=c[0];var h=document.createElement("h2");h.className="subj-h "+cur;h.textContent=SUBJ[cur];h.setAttribute("data-s",cur);list.appendChild(h);}
+  var a=document.createElement("article");a.className="card";a.id=c[1];a.setAttribute("data-s",c[0]);
+  a.innerHTML='<div class="card-h"><h3>'+c[2]+'</h3>'+(c[3]?'<span class="badge">公表問題</span>':'')+'</div>'+c[4].replace(/<table>/g,'<div class="tbl"><table>').replace(/<\/table>/g,'</table></div>')+
+    '<button type="button" class="done-btn" data-id="'+c[1]+'" aria-pressed="false">覚えた</button>';
+  a.querySelectorAll(".k").forEach(function(k){k.setAttribute("tabindex","0");});
+  a._text=a.textContent;
+  a._html=a.innerHTML;
+  list.appendChild(a);els[c[1]]=a;
+});
+var empty=document.createElement("p");empty.className="empty";empty.textContent="該当するテーマがありません。";empty.hidden=true;list.appendChild(empty);
+$("toc").innerHTML=CARDS.map(function(c){return '<a href="#'+c[1]+'" data-id="'+c[1]+'">'+c[2]+'</a>';}).join("");
+
+function esc(s){return s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");}
+function highlight(el,q){
+  if((el._lastQ||"")===q)return;
+  el._lastQ=q;
+  el.innerHTML=el._html;
+  el.querySelectorAll(".k").forEach(function(k){k.setAttribute("tabindex","0");});
+  if(!q)return;
+  var re=new RegExp(esc(q),"g");
+  var walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,null);var nodes=[];
+  while(walker.nextNode()){var n=walker.currentNode;if(n.parentNode.closest(".done-btn"))continue;if(re.test(n.nodeValue))nodes.push(n);re.lastIndex=0;}
+  nodes.forEach(function(n){
+    var frag=document.createDocumentFragment(),t=n.nodeValue,last=0,m;
+    re.lastIndex=0;
+    while((m=re.exec(t))){frag.appendChild(document.createTextNode(t.slice(last,m.index)));var mk=document.createElement("mark");mk.textContent=m[0];frag.appendChild(mk);last=m.index+m[0].length;}
+    frag.appendChild(document.createTextNode(t.slice(last)));n.parentNode.replaceChild(frag,n);
+  });
+}
+function render(){
+  var q=$("q").value.trim(),f=state.filter,shown=0,shownS={};
+  CARDS.forEach(function(c){
+    var el=els[c[1]];
+    var ok=(f==="all"||f===c[0]||(f==="pub"&&c[3])||(f==="todo"&&!state.done[c[1]]));
+    if(ok&&q)ok=el._text.indexOf(q)>=0;
+    el.hidden=!ok;
+    if(ok){shown++;shownS[c[0]]=1;}
+    highlight(el,ok?q:"");
+    var d=!!state.done[c[1]];el.classList.toggle("is-done",d);
+    var b=el.querySelector(".done-btn");b.setAttribute("aria-pressed",String(d));b.textContent=d?"覚えた ✓":"覚えた";
+  });
+  list.querySelectorAll(".subj-h").forEach(function(h){h.hidden=!shownS[h.getAttribute("data-s")];});
+  empty.hidden=shown>0;
+  $("count").textContent=shown+" / "+CARDS.length+" テーマを表示";
+  var n=Object.keys(state.done).filter(function(k){return state.done[k]&&els[k];}).length;
+  $("meterNum").textContent=n+"/"+CARDS.length;
+  $("meterFill").style.width=(n/CARDS.length*100)+"%";
+  document.querySelectorAll("#toc a").forEach(function(a){a.classList.toggle("done",!!state.done[a.getAttribute("data-id")]);});
+  document.querySelectorAll("#tabs button").forEach(function(b){b.setAttribute("aria-pressed",String(b.getAttribute("data-f")===f));});
+  document.body.classList.toggle("sheet",state.sheet);
+  $("sheetBtn").setAttribute("aria-pressed",String(state.sheet));
+  $("sheetBtn").textContent=state.sheet?"赤シート：オン":"赤シート";
+}
+$("tabs").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;state.filter=b.getAttribute("data-f");render();window.scrollTo({top:0});});
+var t=null;$("q").addEventListener("input",function(){clearTimeout(t);t=setTimeout(render,150);});
+$("sheetBtn").addEventListener("click",function(){state.sheet=!state.sheet;if(!state.sheet)document.querySelectorAll(".k.open").forEach(function(k){k.classList.remove("open");});save();render();});
+list.addEventListener("click",function(e){
+  var b=e.target.closest(".done-btn");
+  if(b){var id=b.getAttribute("data-id");if(state.done[id])delete state.done[id];else state.done[id]=true;save();render();return;}
+  var k=e.target.closest(".k");if(k&&state.sheet)k.classList.toggle("open");
+});
+list.addEventListener("keydown",function(e){if((e.key==="Enter"||e.key===" ")&&e.target.classList.contains("k")&&state.sheet){e.preventDefault();e.target.classList.toggle("open");}});
+$("toc").addEventListener("click",function(e){var a=e.target.closest("a");if(!a)return;var el=els[a.getAttribute("data-id")];if(el&&el.hidden){state.filter="all";$("q").value="";render();}});
+$("topBtn").addEventListener("click",function(){window.scrollTo({top:0,behavior:"smooth"});});
+render();
+})();
+</script>
+</body>
+</html>
